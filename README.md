@@ -132,7 +132,8 @@ Perpink only ever *asks*: it opens a connection, sends a question and reads the 
 - **Only the app's conversations.** The history lists sessions started through the API server (`source=api_server`); Telegram chats and cron runs live in the same Hermes but don't show up here.
 - **Photos only.** Documents, PDFs and other files can't be sent — the API server accepts images inline and nothing else. Photos sent aren't kept in Hermes's transcripts either, so a reloaded conversation shows only that one was there.
 - **The agent's files need a proxy.** Hermes doesn't serve the files it makes; without the small proxy in [Files the agent makes](#files-the-agent-makes), the app shows their names only.
-- **One server and one profile per install**, and one run in flight at a time.
+- **One server and profile at a time.** Settings holds a single address, profile and key, with no list to pick from: switching means typing the other ones in.
+- **One question at a time.** A new question waits for the current answer. Opening another conversation mid-answer stops the app following the run, not the run itself: it finishes on the server, and its answer is there when you come back to that conversation.
 
 ## Server integration
 
