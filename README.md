@@ -22,7 +22,7 @@ SwiftUI, no dependencies. iOS 17+ and macOS 14+ from one target, Swift 6.
 
 Perpink is a client only: it connects to a Hermes Agent instance you run yourself. It is an independent project, not affiliated with Nous Research, Tailscale or Hermès.
 
-**Contents:** [Getting started](#getting-started) · [Features](#features) · [On the Mac](#on-the-mac) · [Server integration](#server-integration) · [Leaving mid-answer](#leaving-mid-answer) · [Layout](#layout) · [License](#license)
+**Contents:** [Getting started](#getting-started) · [Features](#features) · [On the Mac](#on-the-mac) · [Limitations](#limitations) · [Server integration](#server-integration) · [Leaving mid-answer](#leaving-mid-answer) · [Layout](#layout) · [License](#license)
 
 ## Getting started
 
@@ -122,6 +122,17 @@ The same target builds a native Mac app (not Catalyst): pick **My Mac** as the r
 - **One window**: the pending run on disk is the app's one in-flight run.
 
 The Mac keychain is separate from the iPhone's: enter the profile's key once in Settings.
+
+## Limitations
+
+Perpink only ever *asks*: it opens a connection, sends a question and reads the answer. Nothing reaches it that it didn't ask for, which rules out a few things Telegram does.
+
+- **No notifications.** The app registers for no push or local notifications, and Hermes's API server has no way to send any — a completion "never starts an unsolicited model turn", in its own docs. An answer that finishes while the app is closed is waiting when you come back to it, not announced.
+- **Cron jobs don't come back to the app.** Hermes can't deliver a scheduled job to an API-server conversation: `deliver: origin` on a job created from the app falls back to the home channel (Telegram, say), and `api_server` is not a delivery target. Without a messaging platform, the output only lands in `~/.hermes/cron/output/` on the server. The same goes for anything the agent sends on its own initiative, such as a `send_message` to a channel.
+- **Only the app's conversations.** The history lists sessions started through the API server (`source=api_server`); Telegram chats and cron runs live in the same Hermes but don't show up here.
+- **Photos only.** Documents, PDFs and other files can't be sent — the API server accepts images inline and nothing else. Photos sent aren't kept in Hermes's transcripts either, so a reloaded conversation shows only that one was there.
+- **The agent's files need a proxy.** Hermes doesn't serve the files it makes; without the small proxy in [Files the agent makes](#files-the-agent-makes), the app shows their names only.
+- **One server and one profile per install**, and one run in flight at a time.
 
 ## Server integration
 
