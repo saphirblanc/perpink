@@ -1,8 +1,97 @@
 # Perpink
 
+[![Platforms: iOS 17+ and macOS 14+](https://img.shields.io/badge/platforms-iOS%2017%2B%20%7C%20macOS%2014%2B-lightgrey?logo=apple)](#getting-started)
+[![Swift 6](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://www.swift.org)
+[![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0A84FF)](https://developer.apple.com/xcode/swiftui/)
+[![No dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](#layout)
+[![Backend: Hermes Agent](https://img.shields.io/badge/backend-Hermes%20Agent-8A2BE2)](https://hermes-agent.nousresearch.com/docs/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 A native iOS and macOS client for a self-hosted [Hermes Agent](https://hermes-agent.nousresearch.com/docs/) — talk to your agent from a dedicated app, alongside Telegram, with the same memory and skills behind both.
 
 SwiftUI, no dependencies. iOS 17+ and macOS 14+ from one target, Swift 6.
+
+<p align="center">
+  <img src="AppStore/screenshots/iphone-2-lisbon.png" alt="An answer with headings and lists on iPhone" width="200">
+  <img src="AppStore/screenshots/iphone-3-code.png" alt="Code blocks on iPhone" width="200">
+  <img src="AppStore/screenshots/iphone-4-history.png" alt="Conversation history on iPhone" width="200">
+</p>
+<p align="center">
+  <img src="AppStore/screenshots/mac-3-code.png" alt="The Mac app, with its sidebar of conversations" width="640">
+</p>
+
+Perpink is a client only: it connects to a Hermes Agent instance you run yourself. It is an independent project, not affiliated with Nous Research, Tailscale or Hermès.
+
+**Contents:** [Getting started](#getting-started) · [Features](#features) · [On the Mac](#on-the-mac) · [Server integration](#server-integration) · [Leaving mid-answer](#leaving-mid-answer) · [Layout](#layout) · [License](#license)
+
+## Getting started
+
+You need a running [Hermes Agent](https://hermes-agent.nousresearch.com/docs/) (any install: bare metal or the official Docker image), and a way for your iPhone or Mac to reach it — a [Tailscale](https://tailscale.com) (or Headscale) tailnet is the simplest.
+
+### 1. Turn on Hermes's API server
+
+The app talks to Hermes's [API server](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server), which is off by default. Add to Hermes's `.env` (`~/.hermes/.env`, or `/opt/data/.env` in the Docker image):
+
+```sh
+API_SERVER_ENABLED=true
+API_SERVER_KEY=<a long random key: openssl rand -hex 32>
+```
+
+Restart the gateway (`hermes gateway`, or restart the container). Its log should say `[API Server] API server listening on http://127.0.0.1:8642`. Check it from the server:
+
+```sh
+curl -H "Authorization: Bearer <key>" http://127.0.0.1:8642/v1/models   # 200 and a model list
+```
+
+**In Docker**, the server must listen on the container's network, and the port should be published on the host's loopback only — never on a public interface:
+
+```yaml
+services:
+  hermes:
+    image: nousresearch/hermes-agent:<version>
+    command: gateway run
+    volumes:
+      - ./data:/opt/data
+    ports:
+      - "127.0.0.1:8642:8642"   # loopback only; step 2 makes it reachable
+```
+
+with `API_SERVER_HOST=0.0.0.0` added to `data/.env` (inside the container, that only means "the container's own network").
+
+> [!IMPORTANT]
+> The key opens the agent with all its tools — on a default setup that includes running commands on the server. Make it long and random, keep it out of anything you share, and consider turning off the tools you won't use from the app: `hermes tools disable --platform api_server terminal file code_execution`.
+
+### 2. Make it reachable from your devices
+
+**With Tailscale (recommended).** Put the server and your devices on the same tailnet, then expose the port to the tailnet only, with HTTPS, from the server:
+
+```sh
+tailscale serve --bg 8642
+```
+
+The API is then at `https://<machine>.<tailnet>.ts.net` for every device on your tailnet and nowhere else (see [Tailscale Serve](https://tailscale.com/kb/1312/serve); the tailnet needs HTTPS certificates turned on). Plain HTTP over the tailnet works too — `http://<machine>.<tailnet>.ts.net:8642` with the API bound to the server's tailnet address — since WireGuard already encrypts the link; the app accepts both.
+
+**On the internet.** Put an HTTPS reverse proxy (Caddy, nginx…) in front of the port. Two things matter: the answer streams as server-sent events, so turn off response buffering (`flush_interval -1` in Caddy, `proxy_buffering off` in nginx), and keep CDN proxies such as Cloudflare's out of the way — they cut long-lived streams after about 100 seconds. Never expose the API over plain HTTP on the internet.
+
+### 3. Connect the app
+
+Install Perpink, or build it: open `Perpink.xcodeproj` in Xcode, pick an iPhone, a simulator or **My Mac**, and run. Then open **Settings** (the gear on iPhone, ⌘, on the Mac):
+
+- **Server** — the address from step 2, e.g. `https://hermes.example.ts.net` or `http://hermes.example.ts.net:8642`. Without a scheme, `http://` is assumed.
+- **Profile** — leave it empty for the default profile, or enter a profile name (see [Profiles](#profiles)).
+- **Key** — the profile's `API_SERVER_KEY`. It is kept in the Keychain.
+
+**Test connection**, then ask away. To have these filled in on first launch of a build of your own, copy `Secrets.example.plist` to `Perpink/Secrets.plist` (gitignored) and fill it in; every value is optional, and anything in it is bundled into the app.
+
+### Troubleshooting
+
+| What you see | Likely cause |
+| --- | --- |
+| *Hermes refused the API key* | The key doesn't match — or it's the default profile's key on a named profile, which only accepts its own. |
+| The connection times out | The device isn't on the tailnet, or in Docker the API still listens on `127.0.0.1` inside the container (`API_SERVER_HOST=0.0.0.0` is missing). |
+| *HTTP 404* when testing | A misspelt profile name, or `gateway.multiplex_profiles` is off on the server. |
+| Answers arrive all at once, or stop after a minute or two | A proxy is buffering or cutting the event stream; see step 2. |
+| An image or file shows *Not available from this server* | Hermes doesn't serve the agent's files itself; see [Files the agent makes](#files-the-agent-makes). |
 
 ## Features
 
@@ -33,17 +122,6 @@ The same target builds a native Mac app (not Catalyst): pick **My Mac** as the r
 - **One window**: the pending run on disk is the app's one in-flight run.
 
 The Mac keychain is separate from the iPhone's: enter the profile's key once in Settings.
-
-## Setup
-
-1. Open `Perpink.xcodeproj` in Xcode and run on a simulator or device.
-2. Open **Settings** (gear, top right) and fill in:
-   - **Server** — the Hermes API server, e.g. `http://hermes.example.ts.net:8642`.
-   - **Profile** — empty for the default profile, or a profile name.
-   - **API_SERVER_KEY** — that profile's key. Kept in the Keychain.
-3. **Test connection.**
-
-To have these filled in on first launch, copy `Secrets.example.plist` to `Perpink/Secrets.plist` (gitignored) and fill it in. Every value is optional.
 
 ## Server integration
 
@@ -142,9 +220,9 @@ Avoid `--clone` for another person's profile: it copies your memory files (`USER
 
 ## App Store
 
-`AppStore/metadata.json` holds the store's subtitle, promotional text and keywords per language, and `AppStore/description-fr.txt` and `AppStore/description-en.txt` the description, with the disclaimer: Perpink connects to your own Hermes Agent instance, typically over Tailscale, and is not affiliated with Nous Research, Tailscale or Hermès. The TestFlight description is the French one. `AppStore/site/` is the support page and privacy policy, served at `https://hermes.noctov.us/perpink/`.
+`AppStore/metadata.json` holds the store's subtitle, promotional text and keywords per language, and `AppStore/description-fr.txt` and `AppStore/description-en.txt` the description, with the disclaimer: Perpink connects to your own Hermes Agent instance, typically over Tailscale, and is not affiliated with Nous Research, Tailscale or Hermès. The TestFlight description is the French one. `AppStore/site/` is the support page and privacy policy.
 
-App Review can't join the tailnet, so `https://hermes.noctov.us` also fronts a separate, disposable Hermes instance (`/root/hermes-demo` on the VPS): its own data and Docker network, a spend-capped OpenRouter key, and only the vision, memory, session-search and todo tools. The main instance is never exposed. Its key is in the review details in App Store Connect. Keep it running while a build is in review. The store screenshots in `AppStore/screenshots/` come from that server's sample conversations: a Debug build launched with `-ScreenshotSession <id>` opens one (`-ScreenshotHistory YES` and `-ScreenshotSettings YES` open those sheets on iOS), and the Mac shots were taken from a build under the bundle id `us.noctov.perpink.screenshots`, which keeps its own settings and Keychain item.
+App Review can't join a tailnet, so it gets a separate, disposable Hermes instance behind HTTPS: its own data and Docker network, a spend-capped model key, and only the vision, memory, session-search and todo tools. The main instance is never exposed. Its key goes in the review details in App Store Connect, and it must be up while a build is in review. The store screenshots in `AppStore/screenshots/` come from that server's sample conversations: a Debug build launched with `-ScreenshotSession <id>` opens one (`-ScreenshotHistory YES` and `-ScreenshotSettings YES` open those sheets on iOS), and the Mac shots were taken from a build under the bundle id `us.noctov.perpink.screenshots`, which keeps its own settings and Keychain item.
 
 ## Leaving mid-answer
 
@@ -171,3 +249,7 @@ A connection that drops while the app is on screen is retried a few times before
 | `BackgroundActivity.swift` | The background-time assertion that keeps a stream open off screen; on the Mac, keeping App Nap off it. |
 | `SettingsStore.swift` | Server, profile and key; the profile URL prefix; the connection check. |
 | `KeychainHelper.swift` | API key read/write. |
+
+## License
+
+Perpink is released under the [MIT License](LICENSE).
