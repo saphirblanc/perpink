@@ -1,0 +1,20 @@
+{
+  "fill" : {
+    "solid" : "extended-srgb:0.03797,0.03797,0.03797,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "glyph.png",
+          "name" : "glyph"
+        }
+      ]
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "macOS"
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perpink Support</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<header>
+  <h1><span>Perpink</span> Support</h1>
+  <p class="lead">An iPhone and Mac app for chatting with your own, self-hosted Hermes Agent.</p>
+</header>
+
+<h2>Getting started</h2>
+<p>Perpink provides no AI service of its own: it connects to a Hermes Agent instance that you run. You need:</p>
+<ul>
+  <li>a <a href="https://hermes-agent.nousresearch.com/docs/">Hermes Agent</a> instance with its <a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server">API server</a> enabled;</li>
+  <li>network access to that server from your device, for example through a private Tailscale network;</li>
+  <li>the API key of the Hermes profile you want to use.</li>
+</ul>
+<p>Open Settings in Perpink, enter the server address (for example <code>http://hermes.example.ts.net:8642</code>), the profile name if it isn't the default one, and its key, then tap <strong>Test connection</strong>.</p>
+
+<h2>Something doesn't work?</h2>
+<ul>
+  <li><strong>Can't connect:</strong> check that your device can reach the server (is Tailscale on?) and that the address includes the port.</li>
+  <li><strong>The key is refused:</strong> each profile only accepts its own <code>API_SERVER_KEY</code>; make sure the profile name and the key match.</li>
+  <li><strong>Profile not found:</strong> named profiles require <code>gateway.multiplex_profiles</code> to be on in Hermes.</li>
+</ul>
+
+<h2>Contact</h2>
+<p>Write to <a href="mailto:yann.fahrni@pm.me">yann.fahrni@pm.me</a>. Perpink is a personal project; answers may take a few days.</p>
+
+<h2>Privacy</h2>
+<p>Perpink collects no data. See the <a href="privacy.html">privacy policy</a>.</p>
+
+<section class="lang" lang="fr">
+<h2>En français</h2>
+<p>Perpink est une app iPhone et Mac pour discuter avec votre propre instance Hermes Agent, que vous hébergez vous-même. L'app ne fournit aucun service d'IA. Il vous faut une instance Hermes dont le serveur d'API est activé, un accès réseau à ce serveur (par exemple via Tailscale) et la clé d'API du profil à utiliser, à saisir dans les Réglages de l'app.</p>
+<p>Une question, un problème ? Écrivez à <a href="mailto:yann.fahrni@pm.me">yann.fahrni@pm.me</a>. Voir aussi la <a href="privacy.html">politique de confidentialité</a>.</p>
+</section>
+
+<footer>
+  <p>Perpink is an independent project, not affiliated with, endorsed by or sponsored by Nous Research (the maker of Hermes Agent), Tailscale Inc. or Hermès. These names belong to their respective owners and are used only to describe compatibility.</p>
+</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "en-US": {
+    "subtitle": "Chat client for Hermes Agent",
+    "promotionalText": "Talk to your self-hosted Hermes Agent from your iPhone and your Mac: photos, files, formatted answers and your whole conversation history.",
+    "keywords": "AI,agent,assistant,chat,self-hosted,LLM,client,server,private,open source,chatbot,markdown",
+    "description": "description-en.txt"
+  },
+  "fr-FR": {
+    "subtitle": "Client pour Hermes Agent",
+    "promotionalText": "Discutez avec votre Hermes Agent auto-hébergé depuis votre iPhone et votre Mac : photos, fichiers, réponses mises en forme et tout votre historique.",
+    "keywords": "IA,agent,assistant,chat,auto-hébergé,LLM,client,serveur,privé,open source,chatbot,markdown",
+    "description": "description-fr.txt"
+  },
+  "copyright": "2026 Yann Fahrni"
+}

@@ -1,0 +1,18 @@
+Perpink is an iPhone and Mac app for chatting with Hermes Agent, the open-source AI agent you host yourself.
+
+Perpink provides no AI service of its own: it connects to your own Hermes instance. You will need:
+• a Hermes Agent instance with its API server enabled;
+• network access to that server, for example through a private Tailscale network installed on the device;
+• the API key of the Hermes profile to use, entered in Settings.
+
+Features
+• Conversations with your agent, with formatted answers (headings, lists, tables, code)
+• Photos and files attached to messages
+• Conversation history loaded from the server, on iPhone and Mac alike
+• Approval of the actions your agent asks to run
+• Adjustable text size
+
+Disclaimer
+Perpink is an independent, personal project. It is not affiliated with, endorsed by or sponsored by Nous Research (the maker of Hermes Agent), Tailscale Inc. or Hermès. These names belong to their respective owners and are mentioned only to describe compatibility.
+
+The app is provided "as is", without warranty of any kind. You alone are responsible for your server, its security, the data you send to it and the actions your agent takes. The author accepts no liability for the use of the app or its consequences.
